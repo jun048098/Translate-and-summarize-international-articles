@@ -52,8 +52,8 @@ def vllm_endpoint(text: str, news: bool=True):
         base_url=os.environ.get("RUNPOD_BASE_URL"),
         api_key=os.environ.get("RUNPOD_API_KEY"),
     )
+    # news prompt
     if news:
-
         prompt = f"""
         article: {text}
 
@@ -65,18 +65,22 @@ def vllm_endpoint(text: str, news: bool=True):
 
         ### Example
         모든 문장은 다음과 같이 완성된 상태로 끝나야 합니다. 중간에 끊어지지 않도록 합니다."""
+
+        message =[{"role": "user", "content": system_prompt},
+              {"role": "assistant", "content": "당신의 요청을 이해했습니다. Thinking과 Answer 규칙에 근거해서 article을 요약하겠습니다. 저에게 요약해야 할 article을 제공해 주세요."},
+              {"role": "user", "content":prompt}]
+    
+    # casual conversation prompt
     else:
         prompt = text
+        message=[{"role": "user", "content":prompt}]
+
     response = client.chat.completions.create(
     model="google/gemma-2-9b-it",
-    messages=[{"role": "user", "content": system_prompt},
-              {"role": "assistant", "content": "당신의 요청을 이해했습니다. Thinking과 Answer 규칙에 근거해서 article을 요약하겠습니다. 저에게 요약해야 할 article을 제공해 주세요."},
-              {"role": "user", "content":prompt}],
+    messages=message,
     temperature=0,
-    # max_tokens=4096,
     )
-    # return response.choices[0].message.content
-    return response
+    return response.choices[0].message.content
 
 
 if __name__ == "__main__":
