@@ -1,89 +1,84 @@
 import os
-import re
+import asyncio
 from tqdm.auto import tqdm
-from datetime import datetime
+import datetime
+from datetime import datetime as dt
+
+from zoneinfo import ZoneInfo
+
 import discord
+from discord.ext import tasks
 from dotenv import load_dotenv
 
 from llm import vllm_endpoint
 from crawler import crawling
-from utils import save_json
-import json
+from utils import save_txt, load_txt
+
 
 load_dotenv()
 
 token = os.getenv('DISCORD_TOKEN')
+CHANNEL_ID = int(os.getenv('CHANNEL_ID'))
 intents = discord.Intents.all()
-client = discord.Client(command_prefix='!',intents=intents)
-ptn = re.compile(r"\d+번")
-int_ptn = re.compile(r"(\d+)")
-
-@client.event
-async def on_ready():
-    print(f'{client.user.name} 등장!')
+client = discord.Client(intents=intents)
 
 
 @client.event
 async def on_message(message):
+    '''LLM 일반 대화'''
     # bot이 스스로 보낸 메시지는 무시
     if message.author == client.user:
         return
 
-    llm_exe = False
-    today = datetime.today().strftime('%y%m%d')
-    path = os.path.join(os.path.dirname(__file__), 'news', today + '.json')
-
-    # 해외뉴스 명령어로 뉴스 요약
-    if message.content.startswith('해외뉴스'):
-        if os.path.isfile(path):
-            with open(path, 'r', encoding="utf-8") as f:
-                article = json.load(f)
-
-            response = []
-            text = f"""날짜 {today}, 기사 {len(article)}개
-원하시는 기사의 번호를 입력해주세요.
-아래 예시의 형식을 꼭 따라주세요.
-예) 1번"""
-
-            response.append(text)
-
-        else:
-            text_list, link_list = crawling()
-            article = []
-
-            for text, link in tqdm(zip(text_list, link_list), total = len(text_list), desc = 'generation'):
-                article.append(vllm_endpoint(text).choices[0].message.content.rstrip() + '\n' + link)
-
-            save_json(path, article)
-
-            response = []
-            text = f"""날짜 {today}, 기사 {len(article)}개
-원하시는 기사의 번호를 입력해주세요.
-아래 예시의 형식을 꼭 따라주세요.
-예) 1번"""
-
-            response.append(text)
-
-    elif ptn.match(message.content):
-        number = int_ptn.match(message.content).group()
-        with open(path, 'r', encoding="utf-8") as f:
-                article = json.load(f)
-            
-        response = []
-        try:
-            response.append(article[int(number)-1])
-        except Exception as e:
-            response.append(e)
-
     # LLM 일반 호출 
-    else:
-        response = [vllm_endpoint(message.content)]
-        llm_exe = True
+    response = vllm_endpoint(message.content, news=False)
 
-    for r in response:
-        if llm_exe == True:
-            await message.channel.send(r.choices[0].message.content)
-        else:
-            await message.channel.send(r)
+    await message.channel.send(response)
 
+
+# 수집 시간 00:01
+@tasks.loop(time=datetime.time(hour=0, minute=1, tzinfo=ZoneInfo("Asia/Seoul")))
+async def auto_crawler():
+    '''
+    매일 00:01분에 디스코드 스레드 생성
+    1시간 간격 뉴스 크롤링
+    스레드에 뉴스 요약 정보를 보내기
+    '''
+    await client.wait_until_ready()
+    channel = client.get_channel(CHANNEL_ID)
+    
+    # 하루동안 수집된 뉴스 링크
+    news_link = set()
+
+    # 공개 스레드 만들기
+    thread_name = dt.now().strftime('%Y/%m/%d') + " CNN 해외 뉴스"
+    thread = await channel.create_thread(name=thread_name, type=discord.ChannelType.public_thread)
+    thread_link = thread.jump_url  
+    await channel.send(f"{thread_link}")
+
+    # 생성된 스레드 링크에 뉴스 요약
+    while True:
+        message_list = []
+        text_list, link_list = crawling()
+        for text, link in tqdm(zip(text_list, link_list), total = len(text_list), desc = 'generation'):
+            # 수집되지 않은 link면 요약
+            if link not in news_link:   
+                news_link.add(link)
+                message_list.append(vllm_endpoint(text).rstrip() + '\n' + str(link))
+
+        # 스레드에 메시지 전송
+        for message in message_list:
+            await thread.send(message)
+
+        # 1 시간마다 수집
+        await asyncio.sleep(3600)
+
+
+@client.event
+async def on_ready():
+    print(f'{client.user.name} 등장!')
+    auto_crawler.start()
+
+
+# 봇 실행
 client.run(token)
