@@ -1,0 +1,14 @@
+CNN_URL: "https://edition.cnn.com"
+CNN_DAILY_ARTICLE_PTN: "^container__link container__link"
+
+ALJAZEERA_URL: "https://www.aljazeera.com"
+ALJAZEERA_DAILY_ARTICLE: "article-trending__title-link u-clickable-card__link"
+
+CNN_ARTICLE_TITLE: "headline__text inline-placeholder vossi-headline-text"
+CNN_ARTICLE_PARAGRAPH: "paragraph inline-placeholder vossi-paragraph"
+
+ALJAZEERA_TITLE_ARTICLE: "article-header"
+ALJAZEERA_PARAGRAPH_ARTICLE: "wysiwyg wysiwyg--all-content css-ibbk12"
+
+ALJAZEERA_TITLE_LIVEBLOG: "compact-featured-area__title"
+ALJAZEERA_PARAGRAPH_LIVEBLOG: "wysiwyg wysiwyg--all-content css-1kw180w"
