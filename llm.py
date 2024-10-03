@@ -59,8 +59,8 @@ def vllm_endpoint(text: str, news: bool=True):
 
         After analyzing the article, summarize its contents accurately in Korean.
         If you answer a question multiple times with similar sentences, it's best to organize them into a single sentence.
-        On the very first line, write the title of article.
-        Try to limit the number of sentences in your summary to fifteen or so.
+        On the very first line, write Korean the title of article.
+        Must be written in 1500 characters or less
         All sentences must be complete and end with a dot (.).
 
         ### Example

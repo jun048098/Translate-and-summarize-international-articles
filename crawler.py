@@ -5,6 +5,8 @@ import time
 import re
 from datetime import datetime
 import yaml
+import pytz
+
 
 with open("crawl_class.yaml") as f:
     classes = yaml.load(f, Loader=yaml.FullLoader)
@@ -35,12 +37,14 @@ def extract_cnn_links_re(url: str, html_class_regex: re.Pattern):
     soup = BeautifulSoup(response.text, "html.parser")
     a_s = soup.find_all("a", class_=html_class_regex)
 
-    today = datetime.today()
+    # 미국 동부 시간
+    est_tz = pytz.timezone('America/New_York')
+    today = datetime.now(est_tz)
     year = today.strftime('%Y')
     month = today.strftime('%m')
     day = today.strftime('%d')
     date_pattern = re.compile(f"^/{year}/{month}/{day}/")
-
+    print(today)
     links = []
     for a_tag in a_s:
         href = a_tag.get("href", "")
