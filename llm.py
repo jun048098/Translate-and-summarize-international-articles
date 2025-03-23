@@ -60,11 +60,11 @@ def vllm_endpoint(text: str, news: bool=True):
         After analyzing the article, summarize its contents accurately in Korean.
         If you answer a question multiple times with similar sentences, it's best to organize them into a single sentence.
         On the very first line, write Korean the title of article.
-        Must be written in 1500 characters or less
+        Must be written in 200 characters or less
         All sentences must be complete and end with a dot (.).
 
         ### Example
-        모든 문장은 다음과 같이 완성된 상태로 끝나야 합니다. 중간에 끊어지지 않도록 합니다."""
+        모든 문장은 다음과 같이 완성된 상태로 끝나야 합니다. 중간에 끊어지지 않도록 합니다. 200 글자를 넘으면 안 됩니다"""
 
         message =[{"role": "user", "content": system_prompt},
               {"role": "assistant", "content": "당신의 요청을 이해했습니다. Thinking과 Answer 규칙에 근거해서 article을 요약하겠습니다. 저에게 요약해야 할 article을 제공해 주세요."},

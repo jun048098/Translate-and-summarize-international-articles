@@ -15,4 +15,4 @@ def load_txt(file_path: str, seperator: str ='\n*****\n'):
 
 def save_json(file_path: str, data: list):
      with open(file_path, "w", encoding='utf8') as file:
-        json.dump(data, file)
+        json.dump(data, file, ensure_ascii=False)
