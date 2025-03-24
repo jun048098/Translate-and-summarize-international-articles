@@ -69,7 +69,6 @@ async def auto_crawler():
     text_list, link_list = crawling()
     print(f"{len(link_list)}개 뉴스 크롤링 완료")
 
-    cnt = 0
     for text, link in tqdm(zip(text_list, link_list), total = len(text_list), desc = 'generation'):
         # 수집되지 않은 link면 요약
         if link not in news_link and len(text)<2000:
@@ -81,8 +80,6 @@ async def auto_crawler():
                 # 스레드에 메시지 전송
                 message = output.rstrip() + '\n' + str(link)
                 await thread.send(message)
-                cnt += 1
-        if cnt ==2: break
     
     save_json(file_path, news_link)
     print("저장 완료")
