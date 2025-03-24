@@ -1,9 +1,8 @@
 name: Run Discord Bot
 
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: '0 * * * *'  # 매 정각(시간마다) 실행
 
 jobs:
   run-bot:
@@ -27,6 +26,7 @@ jobs:
           RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
           RUNPOD_BASE_URL: ${{ secrets.RUNPOD_BASE_URL }}
         run: python gitbot.py
+
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
