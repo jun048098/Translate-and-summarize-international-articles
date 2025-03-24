@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 
 import asyncio
 from tqdm.auto import tqdm
@@ -17,7 +16,7 @@ from llm import vllm_endpoint
 from crawler import crawling
 from utils import save_txt, load_txt, save_json
 
-logging.basicConfig(level=logging.WARNING)
+
 load_dotenv()
 
 token = os.getenv('DISCORD_TOKEN')
@@ -51,8 +50,10 @@ async def auto_crawler():
 
     if threads:
         thread = threads[-1]
+        print(f'{thread.name} 스레드 배포')
     else:
         thread = await channel.create_thread(name=thread_name, type=discord.ChannelType.public_thread)
+        print(f'{thread.name} 스레드 생성')
         thread_link = thread.jump_url 
         await channel.send(f"{thread_link}")
         
