@@ -45,7 +45,7 @@ async def auto_crawler():
     channel = client.get_channel(CHANNEL_ID)
 
     # 공개 스레드 만들기
-    thread_name = dt.now().strftime('%Y/%m/%d') + " CNN 해외 뉴스"
+    thread_name = dt.now().strftime('%Y%m%d') + " CNN 해외 뉴스"
     threads = [thread for thread in channel.threads if thread.name == thread_name ]
 
     if threads:
