@@ -27,3 +27,10 @@ jobs:
           RUNPOD_API_KEY: ${{ secrets.RUNPOD_API_KEY }}
           RUNPOD_BASE_URL: ${{ secrets.RUNPOD_BASE_URL }}
         run: python gitbot.py
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Auto-commit: Apply changes after bot execution" || echo "No changes to commit"
+          git push
