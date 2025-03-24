@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 
 import asyncio
 from tqdm.auto import tqdm
@@ -16,7 +17,7 @@ from llm import vllm_endpoint
 from crawler import crawling
 from utils import save_txt, load_txt, save_json
 
-
+logging.basicConfig(level=logging.WARNING)
 load_dotenv()
 
 token = os.getenv('DISCORD_TOKEN')
@@ -52,7 +53,9 @@ async def auto_crawler():
         thread = threads[-1]
     else:
         thread = await channel.create_thread(name=thread_name, type=discord.ChannelType.public_thread)
-
+        thread_link = thread.jump_url 
+        await channel.send(f"{thread_link}")
+        
     # 수집된 뉴스 링크
     file_path = os.path.join("news", "thread_name.json")
     if os.path.exists(file_path):
@@ -64,10 +67,11 @@ async def auto_crawler():
     # 크롤링
     text_list, link_list = crawling()
     print(f"{len(link_list)}개 뉴스 크롤링 완료")
-    
+
+    cnt = 0
     for text, link in tqdm(zip(text_list, link_list), total = len(text_list), desc = 'generation'):
         # 수집되지 않은 link면 요약
-        if link not in news_link:
+        if link not in news_link and len(text)<2000:
             output = vllm_endpoint(text)
             news_link[link] = output
             if output is None:
@@ -76,6 +80,8 @@ async def auto_crawler():
                 # 스레드에 메시지 전송
                 message = output.rstrip() + '\n' + str(link)
                 await thread.send(message)
+                cnt += 1
+        if cnt ==2: break
     
     save_json(file_path, news_link)
     print("저장 완료")
