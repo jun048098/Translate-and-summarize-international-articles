@@ -58,7 +58,7 @@ async def auto_crawler():
         await channel.send(f"{thread_link}")
         
     # 수집된 뉴스 링크
-    file_path = os.path.join("news", "thread_name.json")
+    file_path = os.path.join("news", thread_name+".json")
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as file:
             news_link = json.load(file)
