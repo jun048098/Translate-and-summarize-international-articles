@@ -45,16 +45,20 @@ async def auto_crawler():
     channel = client.get_channel(CHANNEL_ID)
 
     # 공개 스레드 만들기
-    thread_name = dt.now().strftime('%Y/%m/%d') + " CNN 해외 뉴스"
+    thread_name = dt.now().strftime('%Y%m%d') + " CNN 해외 뉴스"
     threads = [thread for thread in channel.threads if thread.name == thread_name ]
 
     if threads:
         thread = threads[-1]
+        print(f'{thread.name} 스레드 배포')
     else:
         thread = await channel.create_thread(name=thread_name, type=discord.ChannelType.public_thread)
-
+        print(f'{thread.name} 스레드 생성')
+        thread_link = thread.jump_url 
+        await channel.send(f"{thread_link}")
+        
     # 수집된 뉴스 링크
-    file_path = os.path.join("news", "thread_name.json")
+    file_path = os.path.join("news", thread_name+".json")
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as file:
             news_link = json.load(file)
@@ -64,10 +68,10 @@ async def auto_crawler():
     # 크롤링
     text_list, link_list = crawling()
     print(f"{len(link_list)}개 뉴스 크롤링 완료")
-    
+
     for text, link in tqdm(zip(text_list, link_list), total = len(text_list), desc = 'generation'):
         # 수집되지 않은 link면 요약
-        if link not in news_link:
+        if link not in news_link and len(text)<2000:
             output = vllm_endpoint(text)
             news_link[link] = output
             if output is None:

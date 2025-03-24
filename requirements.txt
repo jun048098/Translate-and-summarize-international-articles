@@ -5,3 +5,5 @@ tqdm
 boto3
 python-dotenv
 pytz
+requests
+PyYAML
